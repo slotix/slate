@@ -5,8 +5,6 @@
 ```json
 {
   "id": "tCcB4hfFP6wvBRe2gwZv9aJp",
-  "payloadID": "t-0WMEZ-Bc9sWGHAMsYvP7y4",??? ubrat' payloadID + storeID nafig chto li ??? my k nim mojem dostuchat'sja i cherez task endpoints cherez task ID
-  "storeID": "B4hfFP6wvBRddewrfseZv9aJp",
   "requests": 1000,
   "fileSize": 10,
   "status": "completed",
@@ -22,8 +20,6 @@ Task object represents an instance of web data extraction or conversion job that
 Property |  Description 
 ---------- |  ----- 
 id | A globally unique id representing this Task.
-payloadId | An MD5 hash generated value from the corresponding collection or conversion scheme that belongs to this task.
-storeId | A globally unique id representing the collected or converted data belongs to this task .
 requests | The number of successful requests for web data extraction tasks that have been performed by this task so far. This field is ignored for data conversion tasks. 
 fileSize | The size of converted file in Megabytes for conversion tasks. This field is ignored for web data extraction tasks. 
 status | The status of the task. It can be one of <code>initialized</code>, <code>queued</code>, <code>running</code>, <code>cancelled</code>, <code>completed</code>, or <code>error</code>.

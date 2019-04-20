@@ -18,7 +18,6 @@ includes:
   - collection
   - pdf-converters
   - tasks
-  - store
   - errors
 
 search: true
