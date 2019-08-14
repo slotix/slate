@@ -1,6 +1,6 @@
-# PDF Converters
+# Convert to PDF
 
-Convert endpoint is used for converting URL, local HTML, Markdown and Office documents to PDF. 
+Convert PDF endpoint is used for converting URL, local HTML, Markdown and Office documents to PDF. 
 
 HTML and Markdown conversions are performed using Google Chrome headless browser. 
 
@@ -10,14 +10,13 @@ Assets: You can send your header, footer, images, fonts, stylesheets and so on f
 
 ```shell 
 curl --request POST \
-    --url https://api.dataflowkit.com/v1/convert/url/pdf?api_key={YOUR_API_KEY} \
+    --url https://api.dataflowkit.com/v1/convert/url/pdf?api_key=YOUR_API_KEY \
     --header 'Content-Type: multipart/form-data' \
     --form remoteURL=https://dataflowkit.com \
     --form marginTop=0 \
     --form marginBottom=0 \
     --form marginLeft=0 \
-    --form marginRight=0 \
-    -o result.pdf
+    --form marginRight=0
 ```
 
 Use Dataflow Kit endpoint <code>/convert/url/pdf</code> to convert remote URL to PDF. 
@@ -42,7 +41,7 @@ When converting a remote URL to PDF, you should remove all margins. If not, some
 
 ```shell
 curl --request POST \
-    --url https://api.dataflowkit.com/v1/convert/html/pdf?api_key={YOUR_API_KEY} \
+    --url https://api.dataflowkit.com/v1/convert/html/pdf?api_key=YOUR_API_KEY \
     --header 'Content-Type: multipart/form-data' \
     --form files=@index.html \
     --form files=@header.html \
@@ -56,8 +55,7 @@ curl --request POST \
     --form marginBottom=1.2 \
     --form marginLeft=1 \
     --form marginRight=1 \
-    --form landscape=true \
-    -o result.pdf
+    --form landscape=true
 ```
 DFK endpoint <code>/convert/html/pdf</code> is intended for HTML file conversions.
 
@@ -147,11 +145,10 @@ Using external paths for Google fonts, images is ok.
 
 ```shell
 curl --request POST \
-    --url https://api.dataflowkit.com/v1/convert/markdown/pdf?api_key={YOUR_API_KEY} \
+    --url https://api.dataflowkit.com/v1/convert/markdown/pdf?api_key=YOUR_API_KEY \
     --header 'Content-Type: multipart/form-data' \
     --form files=@index.html \
-    --form files=@file.md \
-    -o result.pdf
+    --form files=@file.md
 ```
 > Sample index.html file for Markdown to PDF conversion
 
@@ -183,7 +180,7 @@ Dataflow Kit endpoint <code>/convert/office/pdf</code> is used for Office docume
 
 It accepts POST requests with a multipart/form-data Content-Type.
 
-The following file formats are supported
+The following file formats are supported:
 
  Text | Spreadsheets | Presentations  
 ---- | ------ | -------
@@ -198,13 +195,12 @@ All files will be merged into a single resulting PDF.
 
 ```shell
 curl --request POST \
-    --url https://api.dataflowkit.com/v1/convert/ofice/pdf?api_key={YOUR_API_KEY} \
+    --url https://api.dataflowkit.com/v1/convert/ofice/pdf?api_key=YOUR_API_KEY \
     --header 'Content-Type: multipart/form-data' \
     --form files=@document1.docx \
     --form files=@document2.doc \
     --form files=@spreadsheet.xlsx \
-    --form landscape=true \
-    -o result.pdf
+    --form landscape=true
 ```
 
 Parameter |  Description 
@@ -216,12 +212,11 @@ landscape |  By default, it will be rendered with portrait orientation.
 
 ```shell
 curl --request POST \
-    --url https://api.dataflowkit.com/v1/merge/pdf?api_key={YOUR_API_KEY} \
+    --url https://api.dataflowkit.com/v1/merge/pdf?api_key=YOUR_API_KEY \
     --header 'Content-Type: multipart/form-data' \
     --form files=@pdf1.pdf \
     --form files=@pdf2.pdf \
-    --form files=@pdf3.pdf \
-    -o result.pdf
+    --form files=@pdf3.pdf
 ```
 
 DFK Merge endpoint <code>/merge/pdf</code> is intended for merging several PDFs into one resulting PDF.
@@ -234,11 +229,22 @@ Just send some PDF files and DFK API will merge them and return the resulting PD
 PDF files will be merged alphabetically.
 </aside>
 
+## Results
+
+```shell
+curl --request GET \
+     --url  "https://dfk-storage.ams3.digitaloceanspaces.com/result_office2pdf_2019-08-09_14%3A39.pdf?X-Amz-Signature=b23fffd81b29f4a597eaa6c29b34501144d1687e6d08bc33141ddae9f7ff1f69"
+```
+
+As a results a link to resulted PDF file returned.
+
+Run the script on the right to download results providing the link.
+
 ## Webhooks
 
 ```shell 
 curl --request POST \
-    --url https://api.dataflowkit.com/v1/convert/html/pdf?api_key={YOUR_API_KEY} \
+    --url https://api.dataflowkit.com/v1/convert/html/pdf?api_key=YOUR_API_KEY \
     --header 'Content-Type: multipart/form-data' \
     --form files=@index.html \
     --form webhookURL='http://mywebsite.com/webhook/'
@@ -247,3 +253,5 @@ curl --request POST \
 All PDF conversion endpoints accept a form field named webhookURL.
 
 If provided, Dataflow Kit API will send the resulting PDF file in a POST request with the <code>application/pdf</code> Content-Type to given URL.
+
+TODO: ???? fileSize | The size of converted file in Megabytes for conversion Tasks. This field is ignored for web data / SERP extraction Tasks. 

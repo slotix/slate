@@ -1,27 +1,23 @@
-# Collections
+# Extract data from web
 
-Collection endpoint is used for extracting data from downloaded web pages following the specified scheme. Dataflow kit uses CSS selectors to find HTML elements in web pages and to extract data from. Extracted data is returned in CSV, MS Excel, JSON, JSON(Lines) or XML format.
+<code>/extract</code> endpoint crawls web pages and extracts data like text, links or images following the specified rules. Dataflow kit uses CSS selectors to find HTML elements in web pages and to extract data from. Extracted data is returned in CSV, MS Excel, JSON, JSON(Lines) or XML format.
 
 ## Collection scheme
 
->Here is a simple example for requesting Collect endpoint:
+>Here is a simple collection object:
 
-```shell
-curl --request POST \
-     --url   https://api.dataflowkit.com/v1/collections?api_key={YOUR_API_KEY} -d \
+```json
 '{
     "name":"test.dataflowkit.com",
     "request":{
         "url":"https://test.dataflowkit.com/persons/page-0",
-        "type":"chrome",
+        "type":"chrome"
     },
     "fields":[
         {
             "name":"Number",
             "selector":".badge-primary",
-            "attrs":[
-                "text"
-            ],
+            "attrs":["text"],
             "type":1,
             "filters":[
                 {
@@ -32,10 +28,7 @@ curl --request POST \
         {
             "name":"Name",
             "selector":"#cards a",
-            "attrs":[
-                "href",
-                "text"
-            ],
+            "attrs":["href","text"],
             "type":2,
             "filters":[
                 {
@@ -46,10 +39,7 @@ curl --request POST \
         {
             "name":"Picture",
             "selector":".card-img-top",
-            "attrs":[
-                "src",
-                "alt"
-            ],
+            "attrs":["src","alt"],
             "type":0,
             "filters":[
                 {
@@ -59,8 +49,7 @@ curl --request POST \
         }
     ],
     "paginator":".page-link",
-    "path":false,
-
+    "path":false
 }'
 ```
 
@@ -69,7 +58,7 @@ Collection scheme represents settings for data extraction from specified web sit
 Property | Description | Required
 --------- | ----------- | -----------
 name | Collection name | required
-request | Request parameters are passed to [Fetch](#fetch) Endpoint for downloading html pages. | required
+request | Request parameters for downloading html pages. Refer to [Fetch HTML](#fetch-html) section for more details about request parameters  | required
 url | url holds the the starting web page address to be downloaded. URL is required. | required
 type | type specifies fetcher type which may be "base" or "chrome" value. If omited "base" fetcher is used by default | optional
 fields | A set of fields used to extract data from a web page. A Field represents a given chunk of data to be extracted from every block on each page. Read more about [field types](#field-types-and-attributes)| required
@@ -84,16 +73,16 @@ format | Extracted data is returned either in CSV, MS Excel, JSON, JSON(Lines) o
 delivery | Email, Amazon S3 bucket, FTP, Dropbox, etc. *Not implemented yet*
 
 <aside class="notice">
-When requesting collect endpoint a new Task object will be created. taskID value is returned as a response. Once a new task is created, you manipulate directly the task object with returned taskID. Refer to <a href="#tasks">Tasks</a> section for more details. 
+When requesting <code>/extract</code> endpoint a new Task object will be created. TaskID value is returned as a response. Once a new Task is created, you manipulate directly the Task object with returned TaskID. Refer to <a href="#tasks-amp-processes">Tasks</a> section for more details. 
 </aside>
 
 <aside class="notice">
-Sometimes Collection service cannot extract data from some pages retrieved by default Base fetcher. Empty results may be returned while parsing Java Script generated pages. Collection service then attempts to force Chrome fetcher to render the same dynamic javascript driven content automatically.
+Sometimes Base Fetcher is unable to extract data from a web page. Empty results may be returned while parsing Java Script generated pages. Extractor then attempts to force Chrome Fetcher to render the same dynamic javascript driven content automatically.
 </aside>
 
 ## Field types and attributes
 
-There are 3 possible field types:
+There are 3 predefined field types:
 
 **Text**  extracts human-readable text from the selected element and from all its child elements. HTML tags are stripped and only text is returned.
 
@@ -207,15 +196,8 @@ Type represents paginator type. The following are available: "next", "more", "in
 
 ## Point-and-click toolkit
 
->Load configuration from collection
 
-```shell
-curl --request POST \
-     --url https://api.dataflowkit.com/v1/collections?api_key={YOUR_API_KEY} \
--d "@$GOPATH/src/github.com/slotix/dataflowkit/examples/example.json"
-```
-
-The most comfortable way to define fields for extraction is to use [Dataflow Kit Visual interface](https://dataflowkit.dfk) 
+The most comfortable way to define fields for extraction is to use [Dataflow Kit Visual interface](https://dataflowkit.com/dfk) 
 
 Just click elements on loaded page and then export collection to a file. 
 
@@ -223,5 +205,6 @@ Just click elements on loaded page and then export collection to a file.
 
 ![Export collection](https://dataflowkit.com/static/img/export-import.png)
 
-Then you can run the scraping task as shown on the right.
-
+<aside class="success">
+<a href="#tasks-amp-processes">Tasks and processes</a> Section will guide you through the steps from specifying CSS Selectors on a web page to downloading results in CSV, MS Excel, JSON, JSON(Lines) or XML format. 
+</aside>

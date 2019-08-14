@@ -13,12 +13,14 @@ toc_footers:
 
 includes:
   - introduction
-  - fetch
-  - collection
-  - screenshot
-  - pdf-converters
   - tasks
+  - single-process
+  - extract-web
+  - extract-serp
+  - pdf-converters
   - errors
+  - addendum
+
 
 search: true
 ---
