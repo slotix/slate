@@ -17,9 +17,6 @@ includes:
   - single-process
   - extract-web
   - extract-serp
-  - pdf-converters
-  - errors
-  - addendum
 
 
 search: true

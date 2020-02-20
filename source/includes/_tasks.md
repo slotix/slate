@@ -2,78 +2,74 @@
 
 Tasks and processes are central to the Dataflow kit API. 
 
-<em>Task</em> represents an instance of <code>web data extractor</code>, <code>search engine results (SERPs) extractor</code>. Task is a repeatable process that runs at a given time with a given set of parameters. 
+<em>Task</em> represents an instance of <code>web data extractor</code>, <code>search engine results (SERPs) collector</code>. Task spawns a new process every run with a given set of parameters. 
 
 Examples of tasks are listed below.
 
 - [Extract web data](#web-data-extraction-task)
 - [Scrape search engine results (SERPs)](#search-engine-results-serps-extraction-task) 
 
-Task endpoints | Description | Results |
---- | -- | ---
-/create | Create new task |<code>task id</code>. Pass <code>id</code> to the <code>run</code> endpoint
-/run  | Run the task with <code>task id </code> created before | <code>process id</code>. A new process is created and its ID returned.  
-/info | Get an information about task with <code>task id </code> | <code>{JSON object}</code> containing JSON payload and other meta information. 
-/results | - | Returns array of processes created by this task 
-/delete | Deletes the task with <code>task id</code> | <code>{"deleted":"ok"}</code>
+|Task endpoints| Description | Results|
+|---- | --- | ---|
+|/task/create | Create new task | Returns <code>{JSON object}</code> representing task structure. Pass <code>task id</code> to the <code>run</code> endpoint to launch it afterwards.|
+|/task/{Task_ID}/run  | Run the task with <code>task id </code> created before |  A new process spawned from the specified task is created and <code>{JSON object}</code> representing process structure returned.|
+|/task/{Task_ID}/info | Get an information about task with <code>task id </code> | <code>{JSON object}</code> containing JSON payload and other meta information.|
+|/task/{Task_ID}/results | Send a request to <code>/results</code> endpoint to retrieve a list of processes belong to this task | Returns <code>[JSON array]</code> containing processes belong to this task.|
+|/task/{Task_ID}/update | Update existing task. Pass here <code>{JSON object}</code> task structure with updated fields. | Returns <code>{JSON object}</code> representing updated task structure.|
+|/task/{Task_ID}/delete | Deletes the task with <code>task id</code> | <code>{"deleted":"ok"}</code>|
 
 
 <em>Process</em> is a single job spawned by a Task performing data extraction or conversion action. 
 
 
 Process endpoints | Description | 
---- | -- | 
-/info | An information about current task with <code>process id</code>| 
-/cancel | Cancels the process with <code>process id</code> | 
+--- | --- | 
+/Process/{Process ID}/info | Returns <code>{JSON object}</code> representing process structure with specified <code>process id</code>.| 
+/Process/{Process ID}/cancel | Cancels the process specifying its <code>process id</code>. Returns {JSON object} representing process structure by <code>process id</code>. | 
 
 The next sections list HTTP endpoints that can be used to manipulate Tasks & Processes.
 
 
 ## Create a Task
 
-<code>Create task</code> endpoint is used to create tasks with specified parameters to run them afterwards. Depending on a task type different payload configurations are passed as arguments but the scheme is identical for all task types. 
-
-The following task types are available to be created and run in Dataflow kit cloud. 
-
-### Web Data extraction Task
-
->Create an Extractor Task specifying payload configuration
+>Create an Web data Extractor/ SERP collection Task specifying payload configuration
 
 ```shell
 curl --request POST \
-     --url https://api.dataflowkit.com/v1/extract/create?name=TASK_NAME&api_key=YOUR_API_KEY \
-     -d '{JSON Collection Payload}'
+     --url https://api.dataflowkit.com/v1/task/create?api_key=YOUR_API_KEY \
+     -d '{JSON Task Payload}'
 ```
+<code>Create task</code> endpoint is used to create tasks with specified parameters to run them multiple times afterwards.
+The same payload structure is used both for Web Data extraction and Search engine results (SERPs) collection tasks. 
 
-Send JSON payload to <code>/extract</code> endpoint.
-If successful, returns task <code>id</code>.
+Send JSON Task payload to <code>/task/create</code> endpoint.
 
-<code>{"id":"1PBhaN1wLaqN8BINrsDXlZANpWN"}</code>
-
-The error is returned otherwise.
-
-<aside class="notice">Refer to <a href="#extract-data-from-web">Extract data from Web</a> section describing parameters for Web data extraction tasks.</aside>
-
-### Search engine results (SERPs) extraction Task
-
->Create an SERP Extractor Task specifying payload configuration
+> Create task endpoint returns New Task Object
 
 ```shell
-curl --request POST \
-     --url https://api.dataflowkit.com/v1/serp/create?name=TASK_NAME&api_key=YOUR_API_KEY \
-     -d '{JSON SERP extraction Payload}'
+{
+   "id":"1XtQA0Z15N3fqKZuzPKESUsTIW1",
+   "name":"Task Name",
+   "webhook":"https://your-web-site.com/webhook",
+   "payload":{JSON Paylod},
+   "description":"Task description...",
+   "type":"extract"
+}
 ```
 
-This task type specially intended for data extraction from Search engines Result pages. 
+### Returned object
 
-Send JSON payload to <code>/serp</code> endpoint.
-If successful, returns task <code>id</code>.
-
-<code>{"id":"r5FhaN1wLaqN8BINrsDXlsANpWf"}</code>
-
+If successful, returns task JSON object.
 The error is returned otherwise.
 
-<aside class="notice">Refer to <a href="#extract-serps">Search engine extractor Parameters</a> section that describes possible configurations for performing SERP related tasks.</aside>
+<aside class="notice">Get more information about <a href="#task-info">Task object description</a>
+</aside>
+
+<aside class="notice">Refer to <a href="#extract-data-from-web">Extract data from Web</a> section describing parameters for Web data extraction tasks.
+</aside>
+<aside class="notice">
+Refer to <a href="#extract-serps">Search engine extractor Parameters</a> section that describes possible configurations for performing SERP related tasks.
+</aside>
 
 ## Run a Task
 
@@ -81,18 +77,16 @@ The error is returned otherwise.
 
 ```shell
 curl --request POST \
-     --url https://api.dataflowkit.com/v1/tasks/{Task_ID}/run?api_key=YOUR_API_KEY
+     --url https://api.dataflowkit.com/v1/task/{Task_ID}/run?api_key=YOUR_API_KEY
 ```
 
-Task <code>Run</code> method starts a new process of the previously created Task in the Dataflow Kit cloud. 
+Posting a request to <code>/task/{Task_ID}/run</code> endpoint starts a new process spawned from the previously created Task with <code>{Task_ID}</code> in the Dataflow Kit cloud. 
 
-This method returns immediately a <code>Process ID</code> generated by the current task, while the process continues in the background. You can use webhooks or polling to figure out when resulted data for this <code>Process ID</code> is ready in order to retrieve it.
+This method returns immediately a <code>{JSON Process Object}</code> generated by the current task, while the process continues in the background. You can use webhooks or polling <code>/process/{Process_ID}/info</code> endpoint to figure out when resulted data for this <code>Process ID</code> is ready to retrieve it.
 
-> Run task endpoint returns Process ID
-
-```json
-  {"id":"Process_ID"} 
-```
+<aside class="notice">
+The next section describes <a href="#process-object">Process object</a> more in details.
+</aside>
 
 
 ## Process object
@@ -104,30 +98,40 @@ This method returns immediately a <code>Process ID</code> generated by the curre
   "id": "1PBhj5EGo2hAvBsytLDL363A6Mq",
   "status":"finished",
   "taskID":"1NGYaLJsY8Xf7RwO99Ew3yyt5rz",
-  "startedAt": "2019-07-10_13:46:32",
-  "finishedAt": "2019-07-10_13:47:07",
-  "took": "35.567787745s",
+  "startedAt": "1580302278",
+  "finishedAt": "1580312522",
   "requestCount": 1000,
   "responseCount":1000,
-  "results" : "https://dfk-storage.ams3.digitaloceanspaces.com/results/96d16bce_2019-05-15_19%3A02.csv?X-Amz-Signature=1b321eb76325140fb85a2dfb0fbc4834a7d8b998d3054d84636a77ecdd8016ef",
-  "logFile" : "https://dfk-storage.ams3.digitaloceanspaces.com/results/96d16bce_2019-05-15_19%3A02.log?X-Amz-Signature=1b321eb76325140fb85a2dfb0fbc4834a7d8b998d3054d84636a77ec8016ef"
+  "results" : "Results File Name",
+  "logFile" : "",
+  "missingCredits":0,
+  "cost":50,
 }
 ```
 
-Process object is created by calling <code>tasks/{taskID}/run</code> endpoint described above. It contains an information about specified task run and results returned after process completion.   
+Process object contains the following information:   
 
 Property |  Description 
 ---------- |  ----- 
 id | A globally unique id represents this Process.
-status | Represent status of the current process. Possible status values are <code>running</code>, <code>finished</code>, <code>cancelled</code>, <code>failed</code>
-taskID | Parent task ID. 
-startedAt | The time that this Process was started at, in UTC +0000.
-finishedAt | The time that this Process was completed or Cancelled. This field will be null if the run is either initialized or running. Time is in UTC +0000.
-took | elapsed time
-requestCount | The number of successful requests for web data / SERP extraction Tasks that have been performed by this Process so far.
+status | Represent status of the current process. Possible status values are described below.
+taskID | Task ID which Curent Process belong to. 
+startedAt | The time that this Process was started at, in Unix time format.
+finishedAt | The time that this Process was completed or Cancelled. This field will be null if the run is either initialized or running. Time is in in Unix time format.
+requestCount | The number of requests for web data / SERP extraction Tasks that have been performed by this Process so far.
 responseCount | The number of successful responses for web data / SERP extraction Tasks that have been performed by this Process so far.
-results | The Link to the file with results in either CSV, MS Excel, JSON, JSON Lines or XML, depending on the format parameter from specified collection scheme. JSON file format is used for SERP endpoint.
+results | The name of a file results in Dataflow Kit storage. File format can be specified in a task payload as either CSV, MS Excel, JSON, JSON Lines or XML.
 logFile | The Link to the log file. 
+missingCredits | A number of missing credits needed to complete a process. Partial data that was extracted so far will be available for download. The complete data set may be returned after replenishment of funds.
+cost | A number of credits that have been withdrawn for the current process. 
+
+Once after a process spawned by Task is completed, its status changes from <code> running </code> to the one following statuses:
+ 
+- <code>finished</code> Process is finished successfully,
+- <code>canceled</code> Process has been canceled by user, 
+- <code>failed</code> An error occured during process execution,
+- <code>pending</code> There are not enough credits to complete the process. In order to get all results user should replenish credits. 
+
 
 ## Process info
 
@@ -140,23 +144,44 @@ curl --request POST \
 
 If response status is <code>running</code> then polling the process info endpoint on the way will return different request and response count according to the actual progress.
 
-Right after process completion extra information like <code>startedAt</code>, <code>finishedAt</code>, <code>results</code> and <code>logFile</code> will be returned.
+Right after process completion extra information like <code>startedAt</code>, <code>finishedAt</code>, <code>results</code> and <code>cost</code> will be returned.
 
 No results or incomplete result sets are returned if the process has been canceled or the process failed. 
 
 
-## Download results & log files
+## Download results.
+
+>Get Results download link
+
+```shell
+curl --request GET \
+     --url https://api.dataflowkit.com/v1/getlink?api_key=YOUR_API_KEY \ 
+     -d 'Results File Name'
+```
+
+Send a request containing Results File Name from a Process to <code>/getlink</code> endpoint to retrieve download link.  
+
+
+As a result the actual download link to results file will be returned. 
+
+<code>https://dfk-storage.ams3.digitaloceanspaces.com/results/96d16bce_2019-05-15_19%3A02.json?X-Amz-Signature=1b321eb76325140fb85a2dfb0fbc4834a7d8b998d3054d84636a77ecdd8016ef</code>
+
+
+
+>Run the script to download results file
 
 ```shell
 curl --request GET \
      --url  "https://dfk-storage.ams3.digitaloceanspaces.com/results/96d16bce_2019-05-15_19%3A02.json?X-Amz-Signature=1b321eb76325140fb85a2dfb0fbc4834a7d8b998d3054d84636a77ecdd8016ef"
 ```
 
-Run the script on the right to download results / log files providing the links from the process object described above.
+Run the script on the right to download results providing the link above.
 
+
+## Intermediate conclusion
 
 <aside class="success">
-So, at this point we've <em>created a new task</em> and <em>run it</em>. Every time we start a task <em>it spawns a new process.</em> Finally a process returns results, otherwise an error is returned. These resulted files and logs can be easily downloaded.<br>
+So, at this point we've <em>created a new task</em> and <em>run it</em>. Every time we start a task <em>it spawns a new process.</em> Finally a process returns results, otherwise an error is returned. These resulted files can be finally downloaded.<br>
 Let's consider other endpoints in the next sections.
 </aside>
 
@@ -167,7 +192,7 @@ curl --request POST \
      --url https://api.dataflowkit.com/v1/processes/{Process_ID}/cancel?api_key=YOUR_API_KEY
 ```
 
-<code>Cancel</code> method stops the specific Process. Any data that was extracted so far will be available for download.
+<code>Cancel</code> method stops the specified currently running Process. Credit will be withdrawn for already processed successfull requests.
 
 
 ## Task info
@@ -186,7 +211,9 @@ Gets a Task object that contains all the details about a specific Task.
 {
   "id": "1PBhaN1wLaqN8BINrsDXlZANpWN",
   "name": "taskName",
-  "payload": "{JSON Payload}",
+  "description":"Task description...",
+  "type":"extract",
+  "payload": {JSON Payload},
   "webhook" : "http://mywebsite.com/webhook/"
 }
 ```
@@ -198,6 +225,8 @@ Property |  Description
 ---------- |  ----- 
 id | A globally unique id represents this Task.
 name | Task name parameter is optional.
+description | Task description... 
+type | Currently only one "extract" type available for all tasks. 
 payload | JSON structure that describes a set of rules for Task launch. Payload depends on task type. Each type of payload is described in corresponded section.
 webhook | If provided, Dataflow Kit API will send the results to given URL.
 
@@ -207,7 +236,7 @@ webhook | If provided, Dataflow Kit API will send the results to given URL.
 
 ```shell
 curl --request POST \
-     --url https://api.dataflowkit.com/v1/tasks/{Task_ID}/results?api_key=YOUR_API_KEY
+     --url https://api.dataflowkit.com/v1/task/{Task_ID}/results?api_key=YOUR_API_KEY
 ```
 
 >Response consists of an array of corresponded processes that were created by specific task.
@@ -218,39 +247,34 @@ curl --request POST \
     "id": "1PBhj5EGo2hAvBsytLDL363A6Mq",
     "status":"finished",
     "taskID":"1NGYaLJsY8Xf7RwO99Ew3yyt5rz",
-    "startedAt": "2019-04-14T23:09:38",
-    "finishedAt": "2019-04-14T23:10:40",
-    "took": "35.567787745s",
+    "startedAt": "1580302278",
+    "finishedAt": "1580312522",
     "requestCount": 1000,
     "responseCount":1000,
-    "results" : "https://dfk-storage.ams3.digitaloceanspaces.com/results/96d16bce_2019-05-15_19%3A02.csv?X-Amz-Signature=1b321eb763636a77ecdd8016ef",
-    "logFile" : "https://dfk-storage.ams3.digitaloceanspaces.com/results/96d16bce_2019-05-15_19%3A02.log?X-Amz-Signature=198d3054d84636a77ec8016ef"
+    "missingCredits":0,
+    "cost":100,
+    "results" : "Results File Name",
+    "logFile" : ""
   },
   {
     "id":"1NotHmEj03c27QUn54dtgICziSy",
     "status":"failed",
     "taskID":"1NGYaLJsY8Xf7RwO99Ew3yyt5rz",
-    "startedAt": "2019-04-18T00:09:38",
-    "finishedAt": "2019-04-18T00:10:40",
+    "startedAt": "1580302278",
+    "finishedAt": "1580312522",
     "requestCount": 8,
     "responseCount":8,
-    "took": "3.567787745s",
-    "results" : "",
-    "LogFile" : "https://dfk-storage.ams3.digitaloceanspaces.com/results/96d16bce_2019-05-15_19%3A02.log?X-Amz-Signature=1b321eb766a77ec8016ef"
+    "missingCredits":0,
+    "cost":100,
+    "results" : "Results File Name",
+    "logFile" : ""
   }
 ]
 ```
 
-Once after a process started by Task is completed, its status changes from <code> running </code> to the one following statuses:
- 
-- <code>finished</code> if it succeded
-- <code>canceled</code> if a process has been cancelled 
-- <code>failed</code> if something went wrong
+Send a request to the task <code>/task/{Task_ID}/results</code> endpoint to retrieve an array of corresponded processes that were created by specified task.
 
-
-If successful, returns the link to resulted data in either CSV, MS Excel, JSON, JSON Lines or XML, depending on the format parameter from specified collection scheme for data extraction tasks. JSON file format is used for SERP endpoint.
-
-Depending on data extraction settings, resulted data then may be either downloaded from DFK storage or delivered directly to E-Mail, Amazon S3, Google Cloud, Dropbox.
+Depending on data extraction settings, resulted data then may be either downloaded from DFK storage or uploaded directly to Google Cloud, Dropbox and Microsoft Onedrive.
 
 <aside class="notice">Refer to <a href="#process-object">Process object</a> section for details about process object fields.</aside>
 
@@ -270,9 +294,22 @@ This endpoint returns the list of all Tasks that the user created or used. The r
 
 ```json
 [
-  {"id": "Task_ID_1", "name": "EXTRACT_TASK_NAME"},
-  {"id": "Task_ID_2", "name": "SERP_TASK_NAME"},
-  {"id": "Task_ID_3", "name": ""}
+  {
+   "id":"1XtQA0Z15N3fqKZuzPKESUsTIW1",
+   "name":"SERP Task",
+   "webhook":"https://your-web-site.com/webhook1",
+   "payload":{JSON Paylod},
+   "description":"SERP description...",
+   "type":"extract"
+  },
+  {
+   "id":"fg1QA0Z15N3fqKZuzPKESUsTIW1",
+   "name":"Web Extraction Name",
+   "webhook":"https://your-web-site.com/webhook2",
+   "payload":{JSON Paylod},
+   "description":"Web description...",
+   "type":"extract"
+  }
 ]
 ```
 
@@ -284,7 +321,7 @@ This endpoint returns the list of all Tasks that the user created or used. The r
 
 ```shell
 curl --request DELETE \
-     --url https://api.dataflowkit.com/v1/tasks/{task_ID}delete?api_key=YOUR_API_KEY
+     --url https://api.dataflowkit.com/v1/task/{task_ID}delete?api_key=YOUR_API_KEY
 ```
 
 Calling this endpoint deletes a specific Task along with corresponding resulted data and log files.
@@ -295,7 +332,7 @@ As a response the JSON object is returned.
 
 ## References
 
-Refer to the corresponded sections for more information: 
+Refer to the corresponded sections for more information about specific task types: 
 
 - [Extract web data](#extract-data-from-web)
 - [Scrape search engine results (SERPs)](#extract-serps) 
